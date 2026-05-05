@@ -1,100 +1,36 @@
-import sqlite3
 import streamlit as st
-st.title("Aplikasi Expense Tracker EDIRA")
-from datetime import datetime
+import sqlite3
 
+# --- KONEKSI DATABASE ---
 def connect_db():
-    return sqlite3.connect("database.db")
+    conn = sqlite3.connect("database.db", check_same_thread=False)
+    return conn
 
-def init_db():
-    conn = connect_db()
-    c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS transaksi(id INTEGER PRIMARY KEY AUTOINCREMENT, tanggal TEXT, kategori TEXT, tipe TEXT, nominal INTEGER)""")
-    conn.commit()
-    conn.close()
-    
-def tambah_data():
-    tanggal = st.number_input("Tanggal (YYYY-MM-DD): ")
-    kategori = st.text_input("Kategori (makanan/transportasi/hiburan): ")
-    tipe = st.text_input("Tipe (pemasukan/pengeluaran): ")
-    nominal = int(st.number_input("Nominal: "))
-    
-    conn = connect_db()
-    conn.execute("INSERT INTO transaksi (tanggal,kategori,tipe,nominal)Values (?,?,?,?)",(tanggal, kategori, tipe, nominal))
-    conn.commit()
-    conn.close()
-    st.write("✅ Data berhasil ditambahkan!")
-    
-def lihat_data():
-    conn = connect_db()
-    data = conn.execute("SELECT * FROM transaksi").fetchall()
-    
-    saldo = 0
-    st.write("\n=== DATA TRANSAKSI ===")
-    for d in data:
-        st.write(f"{d[0]} | {d[1]} | {d[2]} | {d[3]} | Rp{d[4]}")
+# --- MENU UTAMA (Gunakan Sidebar) ---
+def main():
+    st.title("Aplikasi Expense Tracker EDIRA")
 
-        if d[3] == "pemasukan":
-            saldo += d[4]
-        else:
-            saldo -= d[4]
+    # Navigasi menggunakan sidebar di sebelah kiri
+    menu = ["Tambah Data", "Lihat Data", "Edit Data", "Hapus Data"]
+    pilihan = st.sidebar.selectbox("Pilih Menu", menu)
 
-    st.write(f"\n💰 Total Saldo: Rp{saldo}")
-    conn.close()
-    
-def edit_data():
-    id_data = st.number_input("Masukkan ID yang mau diedit: ")
+    if pilihan == "Tambah Data":
+        st.subheader("Tambah Transaksi Baru")
+        # Contoh input ala Streamlit
+        tanggal = st.date_input("Pilih Tanggal")
+        kategori = st.selectbox("Kategori", ["Makanan", "Transportasi", "Hiburan"])
+        tipe = st.radio("Tipe", ["Pemasukan", "Pengeluaran"])
+        nominal = st.number_input("Nominal", min_value=0)
+        
+        if st.button("Simpan Data"):
+            # Panggil fungsi tambah_data kamu di sini
+            st.success("Data berhasil disimpan!")
 
-    tanggal = st.number_input("Tanggal baru: ")
-    kategori = st.text_input("Kategori baru: ")
-    tipe = st.text_input("Tipe baru: ")
-    nominal = int(st.number_input("Nominal baru: "))
+    elif pilihan == "Lihat Data":
+        st.subheader("Data Transaksi")
+        # Panggil fungsi lihat_data kamu di sini
+        st.info("Fitur Lihat Data akan tampil di sini")
 
-    conn = connect_db()
-    conn.execute("""
-        UPDATE transaksi 
-        SET tanggal=?, kategori=?, tipe=?, nominal=? 
-        WHERE id=?
-    """, (tanggal, kategori, tipe, nominal, id_data))
-
-    conn.commit()
-    conn.close()
-    st.write("✏️ Data berhasil diupdate!")
-    
-def hapus_data():
-    id_data = st.write("Masukkan ID yang mau dihapus: ")
-
-    conn = connect_db()
-    conn.execute("DELETE FROM transaksi WHERE id=?", (id_data,))
-    conn.commit()
-    conn.close()
-    st.write("🗑️ Data berhasil dihapus!")
-    
-def menu():
-    while True:
-        st.write("\n=== EXPENSE TRACKER ===")
-        st.write("1. Tambah Data")
-        st.write("2. Lihat Data")
-        st.write("3. Edit Data")
-        st.write("4. Hapus Data")
-        st.write("5. Keluar")
-
-        pilihan = st.number_input("Pilih menu: ")
-
-        if pilihan == "1":
-            tambah_data()
-        elif pilihan == "2":
-            lihat_data()
-        elif pilihan == "3":
-            edit_data()
-        elif pilihan == "4":
-            hapus_data()
-        elif pilihan == "5":
-            st.write("Terima kasih!")
-            break
-        else:
-            st.write("❌ Pilihan tidak valid!")
-            
+# Jalankan fungsi utama
 if __name__ == "__main__":
-    init_db()
-    menu()
+    main()
