@@ -23,13 +23,26 @@ def main():
         nominal = st.number_input("Nominal", min_value=0)
         
         if st.button("Simpan Data"):
-            # Panggil fungsi tambah_data kamu di sini
-            st.success("Data berhasil disimpan!")
+    conn = connect_db()
+    c = conn.cursor()
+    # Pastikan nama kolom sesuai dengan tabel transaksi kamu
+    c.execute("INSERT INTO transaksi (tanggal, kategori, tipe, nominal) VALUES (?, ?, ?, ?)", 
+              (str(tanggal), kategori, tipe, nominal))
+    conn.commit()
+    conn.close()
+    st.success("Data berhasil disimpan ke database!")
 
     elif pilihan == "Lihat Data":
-        st.subheader("Data Transaksi")
-        # Panggil fungsi lihat_data kamu di sini
-        st.info("Fitur Lihat Data akan tampil di sini")
+    st.subheader("Data Transaksi")
+    conn = connect_db()
+    # Mengambil data menggunakan pandas agar rapi
+    df = pd.read_sql_query("SELECT * FROM transaksi", conn)
+    conn.close()
+
+    if not df.empty:
+        st.dataframe(df) # Menampilkan tabel interaktif
+    else:
+        st.warning("Belum ada data transaksi.")
 
 # Jalankan fungsi utama
 if __name__ == "__main__":
